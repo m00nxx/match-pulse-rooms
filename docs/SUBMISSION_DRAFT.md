@@ -40,9 +40,36 @@ Odds are used as an information signal rather than a wagering call to action. Th
 
 ## Links
 
-- Application: `TBD_AFTER_DEPLOY`
-- Public repository: `TBD_AFTER_REPO_CREATE`
+- Application: https://match-pulse-rooms.vercel.app
+- Public repository: https://github.com/m00nxx/match-pulse-rooms
+- Technical documentation: https://github.com/m00nxx/match-pulse-rooms#architecture
 - Demo video: `TBD_AFTER_VIDEO_UPLOAD`
+
+## Superteam form-ready answers
+
+**Project Title**
+
+Match Pulse Rooms
+
+**Briefly explain your Project**
+
+Match Pulse Rooms is an explainable, non-wagering football second screen. It transforms TxLINE scores and odds into a transparent momentum story, lets fans make free local micro-predictions, and reveals where crowd instinct diverges from the market. A deterministic replay keeps the experience judgeable outside live match windows, while the server-only live connector demonstrates real TxLINE devnet data without exposing credentials.
+
+**Link to live & working MVP**
+
+https://match-pulse-rooms.vercel.app
+
+**Public repository link**
+
+https://github.com/m00nxx/match-pulse-rooms
+
+**Technical documentation link**
+
+https://github.com/m00nxx/match-pulse-rooms#architecture
+
+**TxLINE feedback**
+
+TxLINE’s free World Cup tier, shared fixture IDs, historical scores, and on-chain activation made a credible prototype possible. The highest-impact improvements would be a lightweight entitled-fixture discovery endpoint, one compact JSON example per response schema, a fixture-by-ID participant lookup, explicit empty-vs-unknown fixture status codes, and serverless SSE or recommended-polling guidance. Activation examples should also store long-lived tokens in protected environment files rather than printing them.
 
 ## TxODDS feedback
 

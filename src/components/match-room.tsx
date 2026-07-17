@@ -179,6 +179,29 @@ function LivePanel({
     };
   }, []);
 
+  useEffect(() => {
+    if (!payload?.fixtureId) return;
+
+    const activeFixtureId = payload.fixtureId;
+    const interval = window.setInterval(() => {
+      void fetch(`/api/txline/room?fixtureId=${activeFixtureId}`, {
+        cache: "no-store",
+      })
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return (await response.json()) as LiveRoomPayload;
+        })
+        .then((nextPayload) => {
+          if (nextPayload) setPayload(nextPayload);
+        })
+        .catch(() => {
+          // Keep the last good live snapshot on a transient refresh failure.
+        });
+    }, 15_000);
+
+    return () => window.clearInterval(interval);
+  }, [payload?.fixtureId]);
+
   async function loadFixture() {
     setLoading(true);
     setError(null);
@@ -365,7 +388,7 @@ function LivePanel({
                 <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2 rounded-full bg-[#c8ff3d]/10 px-3 py-1.5 text-[0.66rem] font-bold uppercase tracking-[0.15em] text-[#c8ff3d]">
                     <Wifi size={12} />
-                    TxLINE · fetched now
+                    TxLINE · auto-refresh 15s
                   </span>
                   <span className="font-mono text-xs text-[#71857c]">
                     #{payload.fixtureId}
@@ -989,6 +1012,57 @@ export function MatchRoom({ match }: { match: DemoMatch }) {
                 Open TxLINE Live
                 <ArrowRight size={16} />
               </button>
+            </div>
+          </section>
+
+          <section className="glass-panel rounded-[1.75rem] p-5 sm:p-8 lg:col-span-12">
+            <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
+              <div>
+                <p className="text-[0.66rem] font-bold uppercase tracking-[0.18em] text-[#c8ff3d]">
+                  Commercial path
+                </p>
+                <h2 className="mt-3 text-3xl font-bold leading-[1.02] tracking-[-0.055em] sm:text-4xl">
+                  One signal engine.
+                  <span className="block text-[#92a59d]">
+                    Many rooms to own.
+                  </span>
+                </h2>
+                <p className="mt-3 max-w-lg text-sm leading-6 text-[#92a59d]">
+                  Match Pulse can ship as a white-label fan layer for clubs,
+                  publishers, stadium screens, and creator communities.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  {
+                    icon: Database,
+                    title: "Media SDK",
+                    copy: "Per-event API and embeddable room licensing.",
+                  },
+                  {
+                    icon: Eye,
+                    title: "Sponsor moments",
+                    copy: "Brand-safe activations around peaks, never wagers.",
+                  },
+                  {
+                    icon: Users,
+                    title: "Club rooms",
+                    copy: "Season subscriptions with identity and community.",
+                  },
+                ].map(({ icon: Icon, title, copy }) => (
+                  <div
+                    key={title}
+                    className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4"
+                  >
+                    <Icon size={17} className="text-[#c8ff3d]" />
+                    <h3 className="mt-4 text-sm font-bold">{title}</h3>
+                    <p className="mt-2 text-xs leading-5 text-[#71857c]">
+                      {copy}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         </div>

@@ -26,6 +26,15 @@ The experience is deliberately consumer-first:
 4. Make a free full-time call and compare the fan crowd with the market.
 5. Switch to **TxLINE Live** and load a devnet fixture without exposing credentials.
 
+## Commercial path
+
+The same signal engine can be licensed as a white-label fan layer:
+
+- media SDK and embeddable match rooms;
+- club or creator subscriptions across a season;
+- sponsor-safe activations around high-tension moments, without wagering;
+- stadium and watch-party displays driven by the same normalized room model.
+
 ## Architecture
 
 ```text
@@ -109,6 +118,7 @@ The end-to-end suite covers desktop and 390 px mobile layouts, replay controls, 
 - [TxLINE integration notes](docs/TXLINE_INTEGRATION.md)
 - [Human decisions](docs/HUMAN_DECISIONS.md)
 - [AI assistance disclosure](docs/AI_DISCLOSURE.md)
+- [Demo narration and shot list](docs/VIDEO_SCRIPT.md)
 - [Submission draft](docs/SUBMISSION_DRAFT.md)
 
 ## AI disclosure

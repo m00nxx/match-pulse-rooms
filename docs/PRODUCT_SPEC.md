@@ -44,3 +44,10 @@ Match Pulse Rooms turns live TxLINE scores and odds into an explainable, non-wag
 - A judge can complete the replay and prediction loop in under 90 seconds.
 - Replay remains fully usable when TxLINE has no active fixture.
 - Live credentials are absent from client bundles and git history.
+
+## Commercial path
+
+- License the normalized signal engine and embeddable room to sports publishers.
+- Offer season-based club and creator rooms with community identity.
+- Sell sponsor-safe branded moments at tension peaks without wagering mechanics.
+- Reuse the room view model for stadium screens and watch-party displays.
