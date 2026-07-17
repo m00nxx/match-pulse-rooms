@@ -9,7 +9,7 @@
 - [x] AI assistance disclosure and human-decision record.
 - [x] Unit, end-to-end, responsive, and accessibility checks.
 - [x] Automated demo recording, narration, H.264/AAC rendering, and captions.
-- [ ] Activate the free TxLINE devnet tier.
+- [x] Activate the free TxLINE devnet tier.
 - [ ] Verify a covered historical fixture through the deployed connector.
 - [ ] Render and publish the final video at `/demo`.
 

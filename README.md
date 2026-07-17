@@ -44,7 +44,7 @@ Browser
   └─ /api/txline/room
           ├─ short-lived guest JWT
           ├─ server-only API token
-          ├─ scores + odds fetched in parallel
+          ├─ score snapshot + current/historical odds
           └─ narrow normalized response
                     │
                     ▼
@@ -116,6 +116,7 @@ The end-to-end suite covers desktop and 390 px mobile layouts, replay controls, 
 - [Product specification](docs/PRODUCT_SPEC.md)
 - [Architecture and security](docs/ARCHITECTURE.md)
 - [TxLINE integration notes](docs/TXLINE_INTEGRATION.md)
+- [Devnet activation evidence](docs/DEVNET_ACTIVATION.md)
 - [Human decisions](docs/HUMAN_DECISIONS.md)
 - [AI assistance disclosure](docs/AI_DISCLOSURE.md)
 - [Demo narration and shot list](docs/VIDEO_SCRIPT.md)

@@ -28,11 +28,15 @@ Match Pulse Rooms is an explainable, non-wagering second screen for football. It
 Primary endpoints:
 
 - `POST /auth/guest/start`
-- `GET /api/scores/updates/{fixtureId}`
-- `GET /api/scores/historical/{fixtureId}`
+- `GET /api/scores/snapshot/{fixtureId}`
 - `GET /api/odds/snapshot/{fixtureId}`
+- `GET /api/odds/snapshot/{fixtureId}?asOf={timestamp}`
 
 The app obtains a fresh guest JWT and adds the subscription token only on the server. Raw feeds and credentials are never returned to the client.
+
+The deployed connector includes a verified historical replay of fixture
+`18241006` (England 1–2 Argentina) with a final score snapshot and an explicitly
+labelled historical TxLINE market snapshot.
 
 ## Why it fits the track
 
@@ -43,6 +47,7 @@ Odds are used as an information signal rather than a wagering call to action. Th
 - Application: https://match-pulse-rooms.vercel.app
 - Public repository: https://github.com/m00nxx/match-pulse-rooms
 - Technical documentation: https://github.com/m00nxx/match-pulse-rooms#architecture
+- Devnet activation evidence: https://github.com/m00nxx/match-pulse-rooms/blob/main/docs/DEVNET_ACTIVATION.md
 - Demo video: https://match-pulse-rooms.vercel.app/demo
 
 ## Superteam form-ready answers

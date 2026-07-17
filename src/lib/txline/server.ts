@@ -85,6 +85,59 @@ function readProbability(value: unknown): number | null {
   return Math.round((numeric <= 1 ? numeric * 100 : numeric) * 10) / 10;
 }
 
+function humanizeMarketLabel(value: unknown) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return "Match market";
+  }
+
+  const knownLabels: Record<string, string> = {
+    "1X2_PARTICIPANT_RESULT": "Match result",
+    ASIANHANDICAP_PARTICIPANT_GOALS: "Asian handicap",
+    TOTAL_PARTICIPANT_GOALS: "Total goals",
+  };
+
+  return (
+    knownLabels[value] ??
+    value
+      .toLowerCase()
+      .replaceAll("_", " ")
+      .replace(/^\w/, (character) => character.toUpperCase())
+  );
+}
+
+function humanizePeriod(value: unknown) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return "Match";
+  }
+
+  return value
+    .split(",")
+    .map((part) => {
+      const normalized = part.trim().toLowerCase();
+      if (normalized === "half=1") return "First half";
+      if (normalized === "half=2") return "Second half";
+      if (normalized === "et") return "Extra time";
+      if (normalized === "penalties") return "Penalties";
+      return part.trim();
+    })
+    .join(" · ");
+}
+
+function humanizeOutcome(value: string) {
+  const knownOutcomes: Record<string, string> = {
+    part1: "Participant 1",
+    part2: "Participant 2",
+    draw: "Draw",
+    yes: "Yes",
+    no: "No",
+  };
+
+  return (
+    knownOutcomes[value.toLowerCase()] ??
+    value.replace(/^\w/, (character) => character.toUpperCase())
+  );
+}
+
 async function getGuestJwt(authBase: string, signal: AbortSignal) {
   const response = await fetch(`${authBase}/auth/guest/start`, {
     method: "POST",
@@ -150,16 +203,26 @@ function normalizeMarkets(raw: unknown): LiveOddsMarket[] {
       const period = readField(market, "MarketPeriod", "marketPeriod");
       const bookmaker = readField(market, "Bookmaker", "bookmaker");
       const inRunning = readField(market, "InRunning", "inRunning");
+      const outcomes = names.slice(0, 6).map((name, index) => ({
+        name: humanizeOutcome(name),
+        probability: readProbability(pct[index]),
+      }));
+
+      if (outcomes.every((outcome) => outcome.probability === null)) {
+        return null;
+      }
 
       return {
-        label: typeof label === "string" ? label : "Match market",
-        period: typeof period === "string" ? period : "Match",
-        bookmaker: typeof bookmaker === "string" ? bookmaker : "TxLINE",
+        label: humanizeMarketLabel(label),
+        period: humanizePeriod(period),
+        bookmaker:
+          typeof bookmaker === "string" && bookmaker.startsWith("TXLine")
+            ? "TxLINE consensus"
+            : typeof bookmaker === "string"
+              ? bookmaker
+              : "TxLINE",
         inRunning: inRunning === true || inRunning === 1,
-        outcomes: names.slice(0, 6).map((name, index) => ({
-          name,
-          probability: readProbability(pct[index]),
-        })),
+        outcomes,
       };
     })
     .filter((market): market is LiveOddsMarket => market !== null)
@@ -176,70 +239,78 @@ function normalizeScores(raw: unknown) {
   const latest = scores[0] ?? null;
   const scored =
     scores.find((item) =>
-      isRecord(readField(item, "scoreSoccer", "ScoreSoccer")),
+      isRecord(readField(item, "scoreSoccer", "ScoreSoccer", "score", "Score")),
     ) ?? null;
-  const timed =
-    scores.find(
-      (item) =>
-        asNumber(
-          readField(
-            getNestedRecord(item, "dataSoccer") ?? {},
-            "Minutes",
-            "minutes",
-          ),
-        ) !== null,
-    ) ??
-    null;
+  const actionFor = (item: UnknownRecord) => {
+    const dataAction = readField(getNestedRecord(item, "data") ?? {}, "Action");
+    const rootAction = readField(item, "action", "Action");
+    return typeof dataAction === "string"
+      ? dataAction
+      : typeof rootAction === "string"
+        ? rootAction
+        : "Score update";
+  };
+  const technicalActions = new Set([
+    "comment",
+    "connected",
+    "connection",
+    "coverage_update",
+    "disconnected",
+  ]);
+  const meaningful =
+    scores.find((item) => !technicalActions.has(actionFor(item))) ?? latest;
+  const isFinal = scores.some((item) =>
+    ["game_finalised", "game_finalized"].includes(actionFor(item)),
+  );
+  const scoreRoot = scored
+    ? getNestedRecord(scored, "scoreSoccer") ??
+      getNestedRecord(scored, "score")
+    : null;
 
-  const participant1 = scored
+  const participant1 = scoreRoot
     ? asNumber(
-        getNestedRecord(
-          scored,
-          "scoreSoccer",
-          "Participant1",
-          "Total",
-        )?.Goals,
+        readField(
+          getNestedRecord(scoreRoot, "Participant1", "Total") ?? {},
+          "Goals",
+        ),
       )
     : null;
-  const participant2 = scored
+  const participant2 = scoreRoot
     ? asNumber(
-        getNestedRecord(
-          scored,
-          "scoreSoccer",
-          "Participant2",
-          "Total",
-        )?.Goals,
+        readField(
+          getNestedRecord(scoreRoot, "Participant2", "Total") ?? {},
+          "Goals",
+        ),
       )
     : null;
+  const clockSeconds = scores.reduce<number | null>((maximum, item) => {
+    const seconds = asNumber(
+      readField(getNestedRecord(item, "clock") ?? {}, "Seconds"),
+    );
+    if (seconds === null) return maximum;
+    return maximum === null ? seconds : Math.max(maximum, seconds);
+  }, null);
 
   return {
-    gameState: latest
-      ? String(readField(latest, "gameState", "GameState") ?? "") || null
-      : null,
-    minute: timed
-      ? asNumber(
-          readField(
-            getNestedRecord(timed, "dataSoccer") ?? {},
-            "Minutes",
-            "minutes",
-          ),
-        )
-      : null,
+    gameState: isFinal
+      ? "final"
+      : latest
+        ? String(readField(latest, "gameState", "GameState") ?? "") || null
+        : null,
+    minute:
+      clockSeconds !== null ? Math.max(0, Math.floor(clockSeconds / 60)) : null,
     score:
       participant1 !== null && participant2 !== null
         ? { participant1, participant2 }
         : null,
-    lastEvent: latest
+    lastEvent: meaningful
       ? {
-          action: (() => {
-            const action = readField(latest, "action", "Action");
-            return typeof action === "string" ? action : "Score update";
-          })(),
+          action: actionFor(meaningful),
           participant: asNumber(
-            readField(latest, "participant", "Participant"),
+            readField(meaningful, "participant", "Participant"),
           ),
           timestamp:
-            asNumber(readField(latest, "ts", "Ts")) ?? Date.now(),
+            asNumber(readField(meaningful, "ts", "Ts")) ?? Date.now(),
         }
       : null,
   };
@@ -273,44 +344,61 @@ export async function getLiveRoom(fixtureId: number): Promise<LiveRoomPayload> {
 
   try {
     const jwt = await getGuestJwt(authBase, controller.signal);
-    const [scoreResult, historicalResult, oddsResult] =
-      await Promise.allSettled([
+    const [scoreResult, currentOddsResult] = await Promise.allSettled([
+      fetchTxline(
+        apiBase,
+        `/scores/snapshot/${fixtureId}`,
+        jwt,
+        apiToken,
+        controller.signal,
+      ),
+      fetchTxline(
+        apiBase,
+        `/odds/snapshot/${fixtureId}`,
+        jwt,
+        apiToken,
+        controller.signal,
+      ),
+    ]);
+
+    const scoreRecords =
+      scoreResult.status === "fulfilled"
+        ? asRecords(scoreResult.value)
+        : [];
+    const normalizedScores = normalizeScores(scoreRecords);
+    const startTime =
+      scoreRecords
+        .map((record) => asNumber(readField(record, "StartTime")))
+        .find((value) => value !== null) ?? null;
+    let markets =
+      currentOddsResult.status === "fulfilled"
+        ? normalizeMarkets(currentOddsResult.value)
+        : [];
+    let oddsAsOf: string | null = null;
+
+    if (markets.length === 0 && startTime !== null && startTime < Date.now()) {
+      const historicalTimestamp = Math.min(
+        Date.now() - 5 * 60_000,
+        startTime + 90 * 60_000,
+      );
+      const historicalOddsResult = await Promise.allSettled([
         fetchTxline(
           apiBase,
-          `/scores/updates/${fixtureId}`,
-          jwt,
-          apiToken,
-          controller.signal,
-        ),
-        fetchTxline(
-          apiBase,
-          `/scores/historical/${fixtureId}`,
-          jwt,
-          apiToken,
-          controller.signal,
-        ),
-        fetchTxline(
-          apiBase,
-          `/odds/snapshot/${fixtureId}`,
+          `/odds/snapshot/${fixtureId}?asOf=${historicalTimestamp}`,
           jwt,
           apiToken,
           controller.signal,
         ),
       ]);
+      const historicalOdds = historicalOddsResult[0];
 
-    const currentScores =
-      scoreResult.status === "fulfilled" ? scoreResult.value : [];
-    const historicalScores =
-      historicalResult.status === "fulfilled" ? historicalResult.value : [];
-    const scoreRecords = [
-      ...asRecords(currentScores),
-      ...asRecords(historicalScores),
-    ];
-    const normalizedScores = normalizeScores(scoreRecords);
-    const markets =
-      oddsResult.status === "fulfilled"
-        ? normalizeMarkets(oddsResult.value)
-        : [];
+      if (historicalOdds.status === "fulfilled") {
+        markets = normalizeMarkets(historicalOdds.value);
+        if (markets.length > 0) {
+          oddsAsOf = new Date(historicalTimestamp).toISOString();
+        }
+      }
+    }
 
     if (scoreRecords.length === 0 && markets.length === 0) {
       throw new Error("TXLINE_FIXTURE_UNAVAILABLE");
@@ -318,8 +406,14 @@ export async function getLiveRoom(fixtureId: number): Promise<LiveRoomPayload> {
 
     return {
       source: "txline",
+      mode:
+        normalizedScores.gameState === "final" ||
+        (startTime !== null && startTime < Date.now() - 6 * 60 * 60_000)
+          ? "historical"
+          : "live",
       fixtureId,
       fetchedAt: new Date().toISOString(),
+      oddsAsOf,
       ...normalizedScores,
       markets,
       availability: {

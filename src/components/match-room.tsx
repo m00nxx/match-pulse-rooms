@@ -388,7 +388,10 @@ function LivePanel({
                 <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2 rounded-full bg-[#c8ff3d]/10 px-3 py-1.5 text-[0.66rem] font-bold uppercase tracking-[0.15em] text-[#c8ff3d]">
                     <Wifi size={12} />
-                    TxLINE · auto-refresh 15s
+                    TxLINE ·{" "}
+                    {payload.mode === "historical"
+                      ? "verified replay"
+                      : "auto-refresh 15s"}
                   </span>
                   <span className="font-mono text-xs text-[#71857c]">
                     #{payload.fixtureId}
@@ -427,6 +430,7 @@ function LivePanel({
                       {primaryMarket?.label || "Live availability"}
                     </span>
                     <span className="text-[0.65rem] text-[#71857c]">
+                      {payload.oddsAsOf ? "Historical snapshot · " : ""}
                       {primaryMarket?.bookmaker || "TxLINE"}
                     </span>
                   </div>

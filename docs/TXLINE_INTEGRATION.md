@@ -14,13 +14,20 @@ The application obtains a fresh guest JWT on the server, combines it with a long
 ## Endpoints used by the product
 
 - `POST /auth/guest/start` — short-lived guest JWT.
-- `GET /api/scores/updates/{fixtureId}` — latest score updates.
-- `GET /api/scores/historical/{fixtureId}` — historical score events for a fixture.
-- `GET /api/odds/snapshot/{fixtureId}` — available pre-match or in-running markets.
+- `GET /api/scores/snapshot/{fixtureId}` — bounded current or historical score snapshot.
+- `GET /api/odds/snapshot/{fixtureId}` — available current markets.
+- `GET /api/odds/snapshot/{fixtureId}?asOf={timestamp}` — documented historical market snapshot.
+
+The score snapshot is the bounded polling source for both current fixtures and
+verified historical replays. If no current five-minute odds snapshot exists for
+a completed fixture, the backend requests a documented historical `asOf`
+snapshot and labels it in the UI.
 
 The official examples also informed the replay/live design:
 
 - `GET /api/fixtures/snapshot`
+- `GET /api/scores/updates/{fixtureId}`
+- `GET /api/scores/historical/{fixtureId}`
 - `GET /api/scores/stream`
 - `GET /api/odds/stream`
 
@@ -59,3 +66,6 @@ It does not receive TxLINE tokens, raw provider payloads, proof trees, participa
 ## Data and brand handling
 
 The public repository contains only synthetic replay data. It does not contain captured TxLINE responses or private credentials. The UI uses original branding and no FIFA or tournament marks.
+
+Public devnet activation and fixture verification evidence is recorded in
+[`DEVNET_ACTIVATION.md`](DEVNET_ACTIVATION.md).

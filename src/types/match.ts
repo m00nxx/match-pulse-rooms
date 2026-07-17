@@ -71,8 +71,10 @@ export type LiveOddsMarket = {
 
 export type LiveRoomPayload = {
   source: "txline";
+  mode: "live" | "historical";
   fixtureId: number;
   fetchedAt: string;
+  oddsAsOf: string | null;
   gameState: string | null;
   minute: number | null;
   score: {
