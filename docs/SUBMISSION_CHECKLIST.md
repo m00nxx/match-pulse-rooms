@@ -10,8 +10,8 @@
 - [x] Unit, end-to-end, responsive, and accessibility checks.
 - [x] Automated demo recording, narration, H.264/AAC rendering, and captions.
 - [x] Activate the free TxLINE devnet tier.
-- [ ] Verify a covered historical fixture through the deployed connector.
-- [ ] Render and publish the final video at `/demo`.
+- [x] Verify a covered historical fixture through the deployed connector.
+- [x] Render and publish the final video at `/demo`.
 
 ## Superteam form
 
@@ -21,7 +21,7 @@
 - [x] Technical documentation link.
 - [x] Detailed TxLINE feedback.
 - [x] AI assistance disclosure.
-- [ ] Confirm the final demo link after deployment.
+- [x] Confirm the final demo link after deployment.
 - [ ] Add optional X link only if the entrant wants to publish one.
 
 ## Entrant-controlled final actions
