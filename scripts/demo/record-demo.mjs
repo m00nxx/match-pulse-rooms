@@ -6,6 +6,7 @@ import { chromium } from "@playwright/test";
 const appUrl =
   process.env.DEMO_APP_URL || "https://match-pulse-rooms.vercel.app";
 const fixtureId = process.env.DEMO_FIXTURE_ID || "";
+const speed = Number(process.env.DEMO_SPEED || "1");
 const outputDir = path.resolve("artifacts/demo");
 const rawDir = path.join(outputDir, "raw");
 
@@ -22,7 +23,8 @@ const context = await browser.newContext({
   },
 });
 const page = await context.newPage();
-const pause = (milliseconds) => page.waitForTimeout(milliseconds);
+const pause = (milliseconds) =>
+  page.waitForTimeout(Math.max(150, milliseconds * speed));
 const reveal = async (locator, milliseconds = 4_000) => {
   await locator.scrollIntoViewIfNeeded();
   await pause(milliseconds);
@@ -59,7 +61,7 @@ await reveal(
 );
 
 const decisiveMoment = page.getByRole("button", {
-  name: "Jump to 78 minutes: Goal · Brazil",
+  name: "Jump to 83 minutes: Goal · Brazil",
 });
 await reveal(decisiveMoment, 3_000);
 await decisiveMoment.click();
