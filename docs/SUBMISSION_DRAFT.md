@@ -1,0 +1,53 @@
+# Submission draft
+
+## Project
+
+**Name:** Match Pulse Rooms
+
+**Track:** Consumer & Fan Experiences
+
+**Tagline:** Feel the match. See the reason.
+
+## Short description
+
+Match Pulse Rooms is an explainable, non-wagering second screen for football. It turns TxLINE scores and odds into a momentum story, lets fans make free micro-predictions, and shows where crowd instinct diverges from the market.
+
+## What was built
+
+- A polished mobile-first match room.
+- A deterministic interactive comeback replay.
+- An explainable Pulse momentum engine with visible signal contributions.
+- A Tension index and event timeline.
+- Free, local-only fan calls with crowd/market comparison.
+- A server-only TxLINE devnet connector for fixture scores and odds.
+- Security headers, graceful failure states, metadata, OG image, and PWA manifest.
+- Unit, end-to-end, responsive, and automated accessibility checks.
+
+## TxLINE usage
+
+Primary endpoints:
+
+- `POST /auth/guest/start`
+- `GET /api/scores/updates/{fixtureId}`
+- `GET /api/scores/historical/{fixtureId}`
+- `GET /api/odds/snapshot/{fixtureId}`
+
+The app obtains a fresh guest JWT and adds the subscription token only on the server. Raw feeds and credentials are never returned to the client.
+
+## Why it fits the track
+
+Odds are used as an information signal rather than a wagering call to action. This creates a consumer experience that makes a match easier to understand and more social without requiring deposits, wallets, prizes, or financial risk.
+
+## Links
+
+- Application: `TBD_AFTER_DEPLOY`
+- Public repository: `TBD_AFTER_REPO_CREATE`
+- Demo video: `TBD_AFTER_VIDEO_UPLOAD`
+
+## TxODDS feedback
+
+The free tier, shared fixture IDs, historical scores, and on-chain activation made a credible prototype possible. The most valuable improvements would be a live entitled-fixture discovery endpoint, compact response examples, a fixture-by-ID metadata lookup, and serverless SSE guidance. Full feedback is in `docs/TXLINE_INTEGRATION.md`.
+
+## AI assistance disclosure
+
+Codex was used materially for research synthesis, product design, implementation, testing, documentation, deployment preparation, and demo-video production. The human entrant approved the track, concept, and primary decisions, retains ownership and responsibility, tests the finished product, and performs required account, legal, and final-submission actions.
