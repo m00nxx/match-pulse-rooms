@@ -90,7 +90,7 @@ if (await loadFixture.isEnabled()) {
 }
 
 await page.mouse.move(1220, 430);
-await pause(6_000);
+await pause(12_000);
 
 const video = page.video();
 await context.close();

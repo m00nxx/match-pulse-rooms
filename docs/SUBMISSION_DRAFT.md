@@ -43,7 +43,7 @@ Odds are used as an information signal rather than a wagering call to action. Th
 - Application: https://match-pulse-rooms.vercel.app
 - Public repository: https://github.com/m00nxx/match-pulse-rooms
 - Technical documentation: https://github.com/m00nxx/match-pulse-rooms#architecture
-- Demo video: `TBD_AFTER_VIDEO_UPLOAD`
+- Demo video: https://match-pulse-rooms.vercel.app/demo
 
 ## Superteam form-ready answers
 

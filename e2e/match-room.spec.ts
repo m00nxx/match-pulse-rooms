@@ -63,6 +63,20 @@ test("opens the server-only TxLINE connector", async ({ page }) => {
   await expect(page.getByText("Replay-only deployment")).toBeVisible();
 });
 
+test("offers a dedicated public demo player", async ({ page }) => {
+  await page.goto("/demo");
+
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Feel the match. See the reason.",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Match Pulse Rooms product demo"),
+  ).toHaveAttribute("controls", "");
+});
+
 test("does not create horizontal overflow at mobile width", async ({
   page,
 }, testInfo) => {

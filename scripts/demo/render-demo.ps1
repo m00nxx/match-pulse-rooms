@@ -6,8 +6,11 @@ $narrationPath = Join-Path $PSScriptRoot "narration.txt"
 $voicePath = Join-Path $outputDir "narration.wav"
 $rawVideoPath = Join-Path $outputDir "match-pulse-raw.webm"
 $finalVideoPath = Join-Path $outputDir "match-pulse-demo.mp4"
+$publicVideoDir = Join-Path $projectRoot "public\demo"
+$publicVideoPath = Join-Path $publicVideoDir "match-pulse-demo.mp4"
 
 New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+New-Item -ItemType Directory -Force -Path $publicVideoDir | Out-Null
 
 Push-Location $projectRoot
 try {
@@ -15,7 +18,7 @@ try {
 
   Add-Type -AssemblyName System.Speech
   $speaker = New-Object System.Speech.Synthesis.SpeechSynthesizer
-  $speaker.Rate = -1
+  $speaker.Rate = 1
   $speaker.Volume = 100
   $speaker.SetOutputToWaveFile($voicePath)
   $speaker.Speak((Get-Content -Raw $narrationPath))
@@ -43,7 +46,9 @@ try {
     -shortest `
     $finalVideoPath
 
-  Get-Item $finalVideoPath | Select-Object FullName, Length, LastWriteTime
+  Copy-Item -LiteralPath $finalVideoPath -Destination $publicVideoPath -Force
+  Get-Item $finalVideoPath, $publicVideoPath |
+    Select-Object FullName, Length, LastWriteTime
 }
 finally {
   Pop-Location
