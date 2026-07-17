@@ -71,6 +71,13 @@ export default function DemoPage() {
             aria-label="Match Pulse Rooms product demo"
           >
             <source src="/demo/match-pulse-demo.mp4" type="video/mp4" />
+            <track
+              default
+              kind="captions"
+              src="/demo/match-pulse-demo.en.vtt"
+              srcLang="en"
+              label="English"
+            />
             Your browser does not support HTML video.
           </video>
         </section>

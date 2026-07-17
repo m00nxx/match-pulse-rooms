@@ -12,6 +12,18 @@ function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function readField(record: UnknownRecord, ...keys: string[]): unknown {
+  for (const key of keys) {
+    if (key in record) return record[key];
+  }
+
+  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
+  const matched = Object.keys(record).find((key) =>
+    normalizedKeys.has(key.toLowerCase()),
+  );
+  return matched ? record[matched] : undefined;
+}
+
 function asRecords(value: unknown): UnknownRecord[] {
   if (Array.isArray(value)) {
     return value.filter(isRecord);
@@ -22,8 +34,9 @@ function asRecords(value: unknown): UnknownRecord[] {
   }
 
   for (const key of ["data", "items", "updates", "scores", "odds", "result"]) {
-    if (Array.isArray(value[key])) {
-      return (value[key] as unknown[]).filter(isRecord);
+    const nested = readField(value, key);
+    if (Array.isArray(nested)) {
+      return nested.filter(isRecord);
     }
   }
 
@@ -53,7 +66,7 @@ function getNestedRecord(
     if (!isRecord(current)) {
       return null;
     }
-    current = current[key];
+    current = readField(current, key);
   }
 
   return isRecord(current) ? current : null;
@@ -122,27 +135,27 @@ function normalizeMarkets(raw: unknown): LiveOddsMarket[] {
 
   return markets
     .map((market): LiveOddsMarket | null => {
-      const names = Array.isArray(market.PriceNames)
-        ? market.PriceNames.filter((item): item is string => typeof item === "string")
+      const rawNames = readField(market, "PriceNames", "priceNames");
+      const rawPct = readField(market, "Pct", "pct");
+      const names = Array.isArray(rawNames)
+        ? rawNames.filter((item): item is string => typeof item === "string")
         : [];
-      const pct = Array.isArray(market.Pct) ? market.Pct : [];
+      const pct = Array.isArray(rawPct) ? rawPct : [];
 
       if (names.length === 0 || pct.length === 0) {
         return null;
       }
 
+      const label = readField(market, "SuperOddsType", "superOddsType");
+      const period = readField(market, "MarketPeriod", "marketPeriod");
+      const bookmaker = readField(market, "Bookmaker", "bookmaker");
+      const inRunning = readField(market, "InRunning", "inRunning");
+
       return {
-        label:
-          typeof market.SuperOddsType === "string"
-            ? market.SuperOddsType
-            : "Match market",
-        period:
-          typeof market.MarketPeriod === "string"
-            ? market.MarketPeriod
-            : "Match",
-        bookmaker:
-          typeof market.Bookmaker === "string" ? market.Bookmaker : "TxLINE",
-        inRunning: market.InRunning === true,
+        label: typeof label === "string" ? label : "Match market",
+        period: typeof period === "string" ? period : "Match",
+        bookmaker: typeof bookmaker === "string" ? bookmaker : "TxLINE",
+        inRunning: inRunning === true || inRunning === 1,
         outcomes: names.slice(0, 6).map((name, index) => ({
           name,
           probability: readProbability(pct[index]),
@@ -155,13 +168,27 @@ function normalizeMarkets(raw: unknown): LiveOddsMarket[] {
 
 function normalizeScores(raw: unknown) {
   const scores = asRecords(raw).sort(
-    (a, b) => (asNumber(b.ts) ?? 0) - (asNumber(a.ts) ?? 0),
+    (a, b) =>
+      (asNumber(readField(b, "ts", "Ts")) ?? 0) -
+      (asNumber(readField(a, "ts", "Ts")) ?? 0),
   );
 
   const latest = scores[0] ?? null;
-  const scored = scores.find((item) => isRecord(item.scoreSoccer)) ?? null;
+  const scored =
+    scores.find((item) =>
+      isRecord(readField(item, "scoreSoccer", "ScoreSoccer")),
+    ) ?? null;
   const timed =
-    scores.find((item) => asNumber(getNestedRecord(item, "dataSoccer")?.Minutes) !== null) ??
+    scores.find(
+      (item) =>
+        asNumber(
+          readField(
+            getNestedRecord(item, "dataSoccer") ?? {},
+            "Minutes",
+            "minutes",
+          ),
+        ) !== null,
+    ) ??
     null;
 
   const participant1 = scored
@@ -186,10 +213,17 @@ function normalizeScores(raw: unknown) {
     : null;
 
   return {
-    gameState:
-      latest && typeof latest.gameState === "string" ? latest.gameState : null,
+    gameState: latest
+      ? String(readField(latest, "gameState", "GameState") ?? "") || null
+      : null,
     minute: timed
-      ? asNumber(getNestedRecord(timed, "dataSoccer")?.Minutes)
+      ? asNumber(
+          readField(
+            getNestedRecord(timed, "dataSoccer") ?? {},
+            "Minutes",
+            "minutes",
+          ),
+        )
       : null,
     score:
       participant1 !== null && participant2 !== null
@@ -197,10 +231,15 @@ function normalizeScores(raw: unknown) {
         : null,
     lastEvent: latest
       ? {
-          action:
-            typeof latest.action === "string" ? latest.action : "Score update",
-          participant: asNumber(latest.participant),
-          timestamp: asNumber(latest.ts) ?? Date.now(),
+          action: (() => {
+            const action = readField(latest, "action", "Action");
+            return typeof action === "string" ? action : "Score update";
+          })(),
+          participant: asNumber(
+            readField(latest, "participant", "Participant"),
+          ),
+          timestamp:
+            asNumber(readField(latest, "ts", "Ts")) ?? Date.now(),
         }
       : null,
   };
