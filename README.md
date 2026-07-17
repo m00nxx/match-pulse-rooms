@@ -120,6 +120,7 @@ The end-to-end suite covers desktop and 390 px mobile layouts, replay controls, 
 - [AI assistance disclosure](docs/AI_DISCLOSURE.md)
 - [Demo narration and shot list](docs/VIDEO_SCRIPT.md)
 - [Submission draft](docs/SUBMISSION_DRAFT.md)
+- [Submission checklist](docs/SUBMISSION_CHECKLIST.md)
 
 ## AI disclosure
 
