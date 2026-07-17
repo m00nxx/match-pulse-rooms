@@ -1,0 +1,52 @@
+name: Solana devnet bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      wallet:
+        description: Solana devnet public address
+        required: true
+        type: string
+      lamports:
+        description: Test lamports to request
+        required: true
+        default: "50000000"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    name: Request test SOL
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      WALLET: ${{ inputs.wallet }}
+      LAMPORTS: ${{ inputs.lamports }}
+    steps:
+      - name: Validate inputs and request devnet airdrop
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$WALLET" =~ ^[1-9A-HJ-NP-Za-km-z]{32,44}$ ]]; then
+            echo "Invalid Solana public address"
+            exit 1
+          fi
+
+          if [[ ! "$LAMPORTS" =~ ^[0-9]+$ ]] || (( LAMPORTS > 100000000 )); then
+            echo "Lamports must be an integer no greater than 0.1 devnet SOL"
+            exit 1
+          fi
+
+          response="$(
+            curl --silent --show-error --fail-with-body \
+              --request POST \
+              --header "content-type: application/json" \
+              --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"requestAirdrop\",\"params\":[\"$WALLET\",$LAMPORTS]}" \
+              https://api.devnet.solana.com
+          )"
+
+          echo "$response"
+          echo "$response" | jq --exit-status '.result | strings | length > 0'
